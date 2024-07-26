@@ -11,10 +11,7 @@ def main():
     
     drawer = Drawer()
     output_video = drawer.draw_annotations(video,tracks)
-
-    
     video_control_utils.save_video(output_video,'data/output.avi')
-
 
 if __name__ == '__main__':
     main()
