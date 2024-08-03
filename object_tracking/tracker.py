@@ -11,7 +11,7 @@ class Tracker:
                     track_activation_threshold=0.3, 
                     lost_track_buffer=100,            
                     minimum_matching_threshold=0.95, 
-                    minimum_consecutive_frames=3    
+                    #minimum_consecutive_frames=3    
                 )        
         self.confidence_threshold = confidence_threshold
         self.batch_size = batch_size
@@ -47,11 +47,11 @@ class Tracker:
             track_id = frame_detection[4]
             
             if class_id == 2:
-                if track_id not in tracks["players"][frame_number]:
+                #if track_id not in tracks["players"][frame_number]:
                     tracks["players"][frame_number][track_id] = {"bounding_box": bounding_box}
 
             if class_id == 3:
-                if track_id not in tracks["referees"][frame_number]:
+               # if track_id not in tracks["referees"][frame_number]:
                     tracks["referees"][frame_number][track_id] = {"bounding_box": bounding_box}
 
     def update_ball_tracks(self, tracks, frame_number, detection_supervision):
