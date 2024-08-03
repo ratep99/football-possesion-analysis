@@ -1,13 +1,18 @@
 from ultralytics import YOLO
 import supervision as sv
 import os
-from utils import geometry_utils, drawing_utils
+from utils import geometry_utils
 from cache import cache_utils
 
 class Tracker:
-    def __init__(self, model_path, confidence_threshold=0.3, batch_size=10):
+    def __init__(self, model_path, confidence_threshold=0.1, batch_size=10):
         self.model = YOLO(model_path)
-        self.tracker = sv.ByteTrack()
+        self.tracker = sv.ByteTrack(
+                    track_activation_threshold=0.3, 
+                    lost_track_buffer=100,            
+                    minimum_matching_threshold=0.95, 
+                    minimum_consecutive_frames=3    
+                )        
         self.confidence_threshold = confidence_threshold
         self.batch_size = batch_size
 
