@@ -12,6 +12,9 @@ class Drawer:
         x_center, _ = geometry_utils.get_center_of_bounding_box(bounding_box)
         width = geometry_utils.get_bounding_box_width(bounding_box)
 
+        # Конверзија боје у tuple са целим бројевима
+        color = tuple(map(int, color))
+
         cv2.ellipse(
             frame,
             center=(x_center, y2),
@@ -68,7 +71,27 @@ class Drawer:
 
         return frame
 
-    def draw_annotations(self, video_frames, tracks):
+    def draw_team_ball_control(self,frame,frame_num,team_ball_control):
+        # Draw a semi-transparent rectaggle 
+        overlay = frame.copy()
+        cv2.rectangle(frame, (1350, 850), (1900,970), (255,255,255), -1 )
+        alpha = 0.4
+        cv2.addWeighted(frame, alpha, frame, 1 - alpha, 0, frame)
+
+        team_ball_control_till_frame = team_ball_control[:frame_num+1]
+        # Get the number of time each team had ball control
+        team_1_num_frames = team_ball_control_till_frame[team_ball_control_till_frame==1].shape[0]
+        team_2_num_frames = team_ball_control_till_frame[team_ball_control_till_frame==2].shape[0]
+        team_1 = team_1_num_frames/(team_1_num_frames+team_2_num_frames)
+        team_2 = team_2_num_frames/(team_1_num_frames+team_2_num_frames)
+
+        cv2.putText(frame, f"Team 1 Ball Control: {team_1*100:.2f}%",(1400,900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+        cv2.putText(frame, f"Team 2 Ball Control: {team_2*100:.2f}%",(1400,950), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+
+        return frame
+
+
+    def draw_annotations(self, video_frames, tracks,team_ball_control):
         output_video_frames = []
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
@@ -80,6 +103,7 @@ class Drawer:
             # Draw Players
             for track_id, player in player_dict.items():
                 color = player.get("team_color", (0, 0, 255))
+                print(f"Player {track_id} color: {color}")  # Додајте испис за боје играча
                 frame = self.draw_ellipse(frame, player["bounding_box"], color, track_id)
 
                 if player.get('has_ball', False):
@@ -92,33 +116,11 @@ class Drawer:
             # Draw ball 
             for track_id, ball in ball_dict.items():
                 frame = self.draw_triangle(frame, ball["bounding_box"], (0, 255, 0))
-
+            
             # Draw Team Ball Control
-            #frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
+            frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
+
 
             output_video_frames.append(frame)
 
-        return output_video_frames  
-   
-   
-   
-   
-   
-    ''' def draw_team_ball_control(self, frame, frame_num, team_ball_control):
-            # Draw a semi-transparent rectangle 
-            overlay = frame.copy()
-            cv2.rectangle(overlay, (1350, 850), (1900, 970), (255, 255, 255), -1)
-            alpha = 0.4
-            cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
-
-            team_ball_control_till_frame = team_ball_control[:frame_num + 1]
-            # Get the number of time each team had ball control
-            team_1_num_frames = team_ball_control_till_frame[team_ball_control_till_frame == 1].shape[0]
-            team_2_num_frames = team_ball_control_till_frame[team_ball_control_till_frame == 2].shape[0]
-            team_1 = team_1_num_frames / (team_1_num_frames + team_2_num_frames)
-            team_2 = team_2_num_frames / (team_1_num_frames + team_2_num_frames)
-
-            cv2.putText(frame, f"Team 1 Ball Control: {team_1 * 100:.2f}%", (1400, 900), self.font , 1, (0, 0, 0), 3)
-            cv2.putText(frame, f"Team 2 Ball Control: {team_2 * 100:.2f}%", (1400, 950), self.font , 1, (0, 0, 0), 3)
-
-            return frame '''
+        return output_video_frames
