@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from utils import geometry_utils
+import constants
 
 class Drawer:
     def __init__(self):
@@ -74,9 +75,9 @@ class Drawer:
     def draw_team_ball_control(self,frame,frame_num,team_ball_control):
         # Draw a semi-transparent rectaggle 
         overlay = frame.copy()
-        cv2.rectangle(frame, (1350, 850), (1900,970), (255,255,255), -1 )
+        cv2.rectangle(overlay, (50, 50), (500,300), (255,255,255), -1 )
         alpha = 0.4
-        cv2.addWeighted(frame, alpha, frame, 1 - alpha, 0, frame)
+        cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
 
         team_ball_control_till_frame = team_ball_control[:frame_num+1]
         # Get the number of time each team had ball control
@@ -85,8 +86,9 @@ class Drawer:
         team_1 = team_1_num_frames/(team_1_num_frames+team_2_num_frames)
         team_2 = team_2_num_frames/(team_1_num_frames+team_2_num_frames)
 
-        cv2.putText(frame, f"Team 1 Ball Control: {team_1*100:.2f}%",(1400,900), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
-        cv2.putText(frame, f"Team 2 Ball Control: {team_2*100:.2f}%",(1400,950), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+
+        cv2.putText(frame, f"Team 1 Ball Control: {team_1*100:.2f}%",(70,70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+        cv2.putText(frame, f"Team 2 Ball Control: {team_2*100:.2f}%",(70,140), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
 
         return frame
 
@@ -96,26 +98,25 @@ class Drawer:
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
 
-            player_dict = tracks["players"][frame_num]
-            ball_dict = tracks["ball"][frame_num]
-            referee_dict = tracks["referees"][frame_num]
+            player_dict = tracks[constants.PLAYERS_KEY][frame_num]
+            ball_dict = tracks[constants.BALL_KEY][frame_num]
+            referee_dict = tracks[constants.REFEREES_KEY][frame_num]
 
             # Draw Players
             for track_id, player in player_dict.items():
-                color = player.get("team_color", (0, 0, 255))
-                print(f"Player {track_id} color: {color}")  # Додајте испис за боје играча
-                frame = self.draw_ellipse(frame, player["bounding_box"], color, track_id)
+                color = player.get(constants.TEAM_COLOR_KEY, (0, 0, 255))
+                frame = self.draw_ellipse(frame, player[constants.BOUNDING_BOX_KEY], color, track_id)
 
-                if player.get('has_ball', False):
-                    frame = self.draw_triangle(frame, player["bounding_box"], (0, 0, 255))
+                if player.get(constants.HAS_BALL_KEY, False):
+                    frame = self.draw_triangle(frame, player[constants.BOUNDING_BOX_KEY], (0, 0, 255))
 
             # Draw Referee
             for _, referee in referee_dict.items():
-                frame = self.draw_ellipse(frame, referee["bounding_box"], (0, 255, 255))
+                frame = self.draw_ellipse(frame, referee[constants.BOUNDING_BOX_KEY], (0, 255, 255))
 
             # Draw ball 
             for track_id, ball in ball_dict.items():
-                frame = self.draw_triangle(frame, ball["bounding_box"], (0, 255, 0))
+                frame = self.draw_triangle(frame, ball[constants.BOUNDING_BOX_KEY], (0, 255, 0))
             
             # Draw Team Ball Control
             frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)

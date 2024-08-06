@@ -1,6 +1,7 @@
 import cv2
 from sklearn.cluster import KMeans
 import numpy as np
+import constants
 
 class TeamClassifier:
     def __init__(self):
@@ -50,7 +51,7 @@ class TeamClassifier:
     def assign_team_color(self, frame, player_detections):
         player_colors = []
         for _, player_detection in player_detections.items():
-            bounding_box = player_detection["bounding_box"]
+            bounding_box = player_detection[constants.BOUNDING_BOX_KEY]
             player_color = self.get_player_color(frame, bounding_box)
             player_colors.append(player_color)
         
@@ -61,6 +62,14 @@ class TeamClassifier:
 
         self.team_colors[1] = kmeans.cluster_centers_[0]
         self.team_colors[2] = kmeans.cluster_centers_[1]
+
+    def assign_teams_to_players(self, tracks, video):
+        for frame_num, player_track in enumerate(tracks[constants.PLAYERS_KEY]):
+            for player_id, track in player_track.items():
+                team = self.get_player_team(video[frame_num], track[constants.BOUNDING_BOX_KEY], player_id)
+                tracks[constants.PLAYERS_KEY][frame_num][player_id][constants.TEAM_KEY] = team
+                tracks[constants.PLAYERS_KEY][frame_num][player_id][constants.TEAM_COLOR_KEY] = self.team_colors[team]
+
 
     def get_player_team(self, frame, player_bounding_box, player_id):
         if player_id in self.player_team_dict:
@@ -77,3 +86,4 @@ class TeamClassifier:
         self.player_team_dict[player_id] = team_id
 
         return team_id
+    
