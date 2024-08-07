@@ -6,14 +6,14 @@ import constants
 class Drawer:
     def __init__(self):
         self.font = cv2.FONT_HERSHEY_DUPLEX
-        self.score_image = None
+        self.team1_logo = cv2.imread('data/dubocica.png', cv2.IMREAD_UNCHANGED)
+        self.team2_logo = cv2.imread('data/mladostgat.png', cv2.IMREAD_UNCHANGED)
 
     def draw_ellipse(self, frame, bounding_box, color, track_id=None):
         y2 = int(bounding_box[3])
         x_center, _ = geometry_utils.get_center_of_bounding_box(bounding_box)
         width = geometry_utils.get_bounding_box_width(bounding_box)
 
-        # Конверзија боје у tuple са целим бројевима
         color = tuple(map(int, color))
 
         cv2.ellipse(
@@ -72,28 +72,86 @@ class Drawer:
 
         return frame
 
-    def draw_team_ball_control(self,frame,frame_num,team_ball_control):
-        # Draw a semi-transparent rectaggle 
+    def overlay_image(self, background, overlay, pos_x, pos_y):
+        bh, bw = background.shape[:2]
+        h, w = overlay.shape[:2]
+
+        if pos_x + w > bw or pos_y + h > bh:
+            raise ValueError("The overlay image is out of bounds of the background image.")
+
+        if overlay.shape[2] == 4:  # check for alpha channel
+            alpha = overlay[:, :, 3] / 255.0
+            overlay = overlay[:, :, :3]
+        else:
+            alpha = np.ones((h, w))
+
+        for c in range(3):
+            background[pos_y:pos_y + h, pos_x:pos_x + w, c] = \
+                (alpha * overlay[:, :, c] + (1 - alpha) * background[pos_y:pos_y + h, pos_x + w, c])
+
+        return background
+
+    def draw_team_ball_control(self, frame, frame_num, team_ball_control, team_1_time, team_2_time):
         overlay = frame.copy()
-        cv2.rectangle(overlay, (50, 50), (500,300), (255,255,255), -1 )
         alpha = 0.4
+
+        # Dimenzije i pozicija pravougaonika
+        pos_x, pos_y = 50, 50
+        box_width, box_height = 500, 100
+        padding = 10
+
+        # Boje i fontovi
+        bg_color = (255, 255, 255)  # Bela pozadina
+        text_color = (0, 0, 0)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        font_scale = 1
+        thickness = 2
+
+        # Dimenzije i pozicija logotipa
+        logo_height, logo_width = 60, 60
+        team1_logo_resized = cv2.resize(self.team1_logo, (logo_width, logo_height), interpolation=cv2.INTER_AREA)
+        team2_logo_resized = cv2.resize(self.team2_logo, (logo_width, logo_height), interpolation=cv2.INTER_AREA)
+
+        # Crtanje pozadine za tekst
+        cv2.rectangle(overlay, (pos_x - padding, pos_y - padding),
+                      (pos_x + box_width + padding, pos_y + box_height + padding), bg_color, -1)
+
+        # Dodavanje transparentnosti
         cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0, frame)
 
-        team_ball_control_till_frame = team_ball_control[:frame_num+1]
-        # Get the number of time each team had ball control
-        team_1_num_frames = team_ball_control_till_frame[team_ball_control_till_frame==1].shape[0]
-        team_2_num_frames = team_ball_control_till_frame[team_ball_control_till_frame==2].shape[0]
-        team_1 = team_1_num_frames/(team_1_num_frames+team_2_num_frames)
-        team_2 = team_2_num_frames/(team_1_num_frames+team_2_num_frames)
+        # Priprema za tekst
+        team_ball_control_till_frame = team_ball_control[:frame_num + 1]
+        team_1_num_frames = np.sum(team_ball_control_till_frame == 1)
+        team_2_num_frames = np.sum(team_ball_control_till_frame == 2)
+        total_frames = team_1_num_frames + team_2_num_frames
+        team_1_possession = (team_1_num_frames / total_frames) * 100 if total_frames != 0 else 0
+        team_2_possession = (team_2_num_frames / total_frames) * 100 if total_frames != 0 else 0
 
+        text1 = f"{team_1_possession:.0f}%"
+        text2 = f"{team_2_possession:.0f}%"
+        time1 = f"{int(team_1_time // 60):02d}:{int(team_1_time % 60):02d}"
+        time2 = f"{int(team_2_time // 60):02d}:{int(team_2_time % 60):02d}"
 
-        cv2.putText(frame, f"Team 1 Ball Control: {team_1*100:.2f}%",(70,70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
-        cv2.putText(frame, f"Team 2 Ball Control: {team_2*100:.2f}%",(70,140), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,0,0), 3)
+        # Postavljanje logotipa na sliku
+        frame = self.overlay_image(frame, team1_logo_resized, pos_x, pos_y + (box_height // 2 - logo_height // 2))
+        frame = self.overlay_image(frame, team2_logo_resized, pos_x + box_width - logo_width, pos_y + (box_height // 2 - logo_height // 2))
+
+        # Postavljanje teksta na sliku
+        text_size1 = cv2.getTextSize(text1, font, font_scale, thickness)[0]
+        text_x1 = pos_x + logo_width + (box_width // 2) - (text_size1[0] // 2) - 50
+        text_y1 = pos_y + (box_height // 2) + (text_size1[1] // 2)
+        text_size2 = cv2.getTextSize(text2, font, font_scale, thickness)[0]
+        text_x2 = pos_x + logo_width + (box_width // 2) - (text_size2[0] // 2) + 50
+        text_y2 = pos_y + (box_height // 2) + (text_size2[1] // 2)
+
+        cv2.putText(frame, text1, (text_x1, text_y1), font, font_scale, text_color, thickness, cv2.LINE_AA)
+        cv2.putText(frame, text2, (text_x2, text_y2), font, font_scale, text_color, thickness, cv2.LINE_AA)
+        cv2.putText(frame, time1, (text_x1, text_y1 + 40), font, font_scale, text_color, thickness, cv2.LINE_AA)
+        cv2.putText(frame, time2, (text_x2, text_y2 + 40), font, font_scale, text_color, thickness, cv2.LINE_AA)
 
         return frame
 
-
-    def draw_annotations(self, video_frames, tracks,team_ball_control):
+    def draw_annotations(self, video_frames, tracks, team_ball_control, team_1_time, team_2_time):
         output_video_frames = []
         for frame_num, frame in enumerate(video_frames):
             frame = frame.copy()
@@ -102,7 +160,7 @@ class Drawer:
             ball_dict = tracks[constants.BALL_KEY][frame_num]
             referee_dict = tracks[constants.REFEREES_KEY][frame_num]
 
-            # Draw Players
+            # Crtanje igrača
             for track_id, player in player_dict.items():
                 color = player.get(constants.TEAM_COLOR_KEY, (0, 0, 255))
                 frame = self.draw_ellipse(frame, player[constants.BOUNDING_BOX_KEY], color, track_id)
@@ -110,17 +168,16 @@ class Drawer:
                 if player.get(constants.HAS_BALL_KEY, False):
                     frame = self.draw_triangle(frame, player[constants.BOUNDING_BOX_KEY], (0, 0, 255))
 
-            # Draw Referee
+            # Crtanje sudije
             for _, referee in referee_dict.items():
                 frame = self.draw_ellipse(frame, referee[constants.BOUNDING_BOX_KEY], (0, 255, 255))
 
-            # Draw ball 
+            # Crtanje lopte
             for track_id, ball in ball_dict.items():
                 frame = self.draw_triangle(frame, ball[constants.BOUNDING_BOX_KEY], (0, 255, 0))
             
-            # Draw Team Ball Control
-            frame = self.draw_team_ball_control(frame, frame_num, team_ball_control)
-
+            # Crtanje kontrole lopte po timovima
+            frame = self.draw_team_ball_control(frame, frame_num, team_ball_control, team_1_time, team_2_time)
 
             output_video_frames.append(frame)
 

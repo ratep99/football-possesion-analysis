@@ -31,6 +31,6 @@ class FootballAnalyzer:
                 self.team_assigner.assign_team_color(self.video[frame_num], player_detections) 
         
         self.team_assigner.assign_teams_to_players(self.tracks, self.video)
-        team_ball_control = self.player_assigner.assign_ball_control(self.tracks, self.video)
-        output_video = self.drawer.draw_annotations(self.video, self.tracks, team_ball_control)
+        team_ball_control, team_1_time, team_2_time = self.player_assigner.assign_ball_control(self.tracks, self.video)
+        output_video = self.drawer.draw_annotations(self.video, self.tracks, team_ball_control, team_1_time, team_2_time)
         video_control_utils.save_video(output_video, self.output_path)
