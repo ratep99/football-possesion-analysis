@@ -8,6 +8,8 @@ class Drawer:
     def __init__(self):
         self.font = cv2.FONT_HERSHEY_DUPLEX
         self.scoreboard = Scoreboard()
+        self.red_bgr = np.array([0, 0, 255])  # Crvena u BGR
+        self.white_bgr = np.array([255, 255, 255])  # Bela u BGR
 
     def draw_ellipse(self, frame, bounding_box, color, track_id=None):
         y2 = int(bounding_box[3])
@@ -52,10 +54,14 @@ class Drawer:
         frame = self.scoreboard.draw(frame, home_team_possession, away_team_possession, home_team_time, away_team_time)
         return frame
 
-    def draw_annotations(self, frame_num, frame, tracks, team_ball_control, home_team_time, away_team_time, home_team_possession, away_team_possession):
+    def draw_annotations(self, frame_num, frame, tracks, team_ball_control, home_team_time, away_team_time, home_team_possession, away_team_possession, home_team_color, away_team_color):
         player_dict = tracks[constants.PLAYERS_KEY][frame_num]
         ball_dict = tracks[constants.BALL_KEY][frame_num]
         referee_dict = tracks[constants.REFEREES_KEY][frame_num]
+
+        # Boje za crtanje
+        home_color = home_team_color
+        away_color = away_team_color
 
         # Crtanje igrača
         for track_id, player in player_dict.items():
@@ -78,3 +84,6 @@ class Drawer:
         frame = self.draw_team_ball_control(frame, frame_num, team_ball_control, home_team_time, away_team_time, home_team_possession, away_team_possession)
 
         return frame
+
+
+

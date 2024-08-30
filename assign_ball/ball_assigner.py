@@ -16,8 +16,10 @@ class BallAssigner:
                     team_ball_control.append(team_id)
                     self.last_team_with_possession = team_id
                 else:
+                    # Ако нема најближег играча, користимо последњи тим са поседом
                     team_ball_control.append(self.last_team_with_possession)
             else:
+                # Ако нема података о лопти, користимо последњи познати посед
                 team_ball_control.append(self.last_team_with_possession)
 
         return team_ball_control
@@ -35,5 +37,4 @@ class BallAssigner:
                 closest_distance = distance
                 closest_player = player_id
                 closest_team_id = player_data[constants.TEAM_KEY]
-
         return closest_player, closest_team_id

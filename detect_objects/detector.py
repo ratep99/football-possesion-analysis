@@ -12,7 +12,7 @@ class ObjectDetector:
     def detect_objects_on_frames(self, frames):
         detections = []
         for i in range(0, len(frames), self.batch_size):
-            detections_batch = self.model.predict(frames[i:i + self.batch_size], conf=self.confidence_threshold)
+            detections_batch = self.model.predict(frames[i:i + self.batch_size], imgsz=1920,  conf=self.confidence_threshold)
             for detection in detections_batch:
                 detection_supervision = sv.Detections.from_ultralytics(detection)
                 self.convert_goalkeeper_to_player(detection_supervision, detection.names)  # Примењујемо конверзију

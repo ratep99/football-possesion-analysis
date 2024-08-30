@@ -62,8 +62,11 @@ class FootballAnalyzer:
                 home_team_time, 
                 away_team_time, 
                 home_team_possession, 
-                away_team_possession
+                away_team_possession,
+                self.team_assigner.home_team_color,  # Dodavanje boje domaćeg tima
+                self.team_assigner.away_team_color   # Dodavanje boje gostujućeg tima
             )
+
 
             video_frames.append(frame)
 

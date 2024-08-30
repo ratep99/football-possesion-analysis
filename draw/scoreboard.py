@@ -17,6 +17,8 @@ class Scoreboard:
         self.text_offset_y = 175
         self.time_offset_y = 110
         self.time_offset_x = 120
+        self.home_team_color = (0,0,255)
+        self.away_team_color = (255,255,255)
 
     def draw(self, frame, home_team_possession, away_team_possession, home_team_time, away_team_time):
         # Добијање димензија фрејма
@@ -78,8 +80,13 @@ class Scoreboard:
         bar_x = pos_x + (overlay_width - bar_width) // 2
         bar_y = pos_y + overlay_height - self.progress_bar_margin
 
-        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + home_team_bar_length, bar_y + self.progress_bar_height), (0, 0, 255), cv2.FILLED)
-        cv2.rectangle(frame, (bar_x + home_team_bar_length, bar_y), (bar_x + bar_width, bar_y + self.progress_bar_height), (255, 0, 0), cv2.FILLED)
+        # Koristimo boje timova za crtanje progress bara
+        home_color = self.home_team_color
+        away_color = self.away_team_color
+
+        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + home_team_bar_length, bar_y + self.progress_bar_height), home_color, cv2.FILLED)
+        cv2.rectangle(frame, (bar_x + home_team_bar_length, bar_y), (bar_x + bar_width, bar_y + self.progress_bar_height), away_color, cv2.FILLED)
+
 
     def overlay_image_on_frame(self, background, overlay, pos_x, pos_y, alpha=1.0):
         bh, bw = background.shape[:2]
