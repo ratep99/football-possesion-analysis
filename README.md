@@ -6,10 +6,9 @@ This project analyzes football video footage to track players, determine ball po
 
 Watch the demo of the project in action:
 
-<video width="720" height="480" controls>
-  <source src="rfkzel_git.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![Football Possession Analysis Demo](./rfkzel.gif)
+
+
 
 ## Features
 
