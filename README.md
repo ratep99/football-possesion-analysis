@@ -1,25 +1,32 @@
 # Football Possession Analysis
 
-This project is designed to analyze football video footage to determine player tracking, ball possession, and team possession statistics. The project uses a YOLO model for object detection, ByteTrack for object tracking, and various utilities for processing and annotating video frames.
+This project analyzes football video footage to track players, determine ball possession, and calculate team possession statistics. It employs YOLO for object detection, ByteTrack for object tracking, and various utilities for video frame annotation.
 
+## Demo
 
+Watch the demo of the project in action:
+
+<video width="720" height="480" controls>
+  <source src="rfkzel_git.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 ## Features
 
-- **Object Detection**: Uses a YOLO model to detect players, referees, and the ball in video frames.
-- **Object Tracking**: Tracks detected objects across frames using ByteTrack.
-- **Team Classification**: Classifies players into home or away teams based on their jersey colors.
-- **Ball Possession Analysis**: Determines which team is in possession of the ball at any given time.
-- **Video Annotation**: Annotates video frames with player positions, ball positions, team possession, and other relevant data.
-- **Caching**: Caches detected and tracked data for faster processing on subsequent runs.
+- **Object Detection**: Utilizes a YOLO model to detect players, referees, and the ball.
+- **Object Tracking**: Tracks objects across frames with ByteTrack.
+- **Team Classification**: Classifies players into home or away teams based on jersey colors.
+- **Ball Possession Analysis**: Identifies which team is in possession of the ball at any given moment.
+- **Video Annotation**: Annotates frames with positions of players, the ball, team possession, etc.
+- **Caching**: Implements caching for detected and tracked data for faster subsequent runs.
 
 ## Installation
 
 1. **Clone the repository:**
-
    ```bash
-   git clone https://github.com/your-username/football-possession-analysis.git
+   git clone https://github.com/ratep99/football-possession-analysis.git
    cd football-possession-analysis
+
 2. **Install required dependencies:**
 
     Ensure you have Python 3.8 or later installed. Then, install the required Python packages:
